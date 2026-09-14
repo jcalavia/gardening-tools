@@ -20,10 +20,11 @@ barb_length = 12;   // mm, barb extension below tray
 barb_od = 10;       // mm, barb outer diameter
 barb_count = 2;     // number of barb ridges
 
-// Side mounting slots
-mount_d = 6.0;      // mm, mounting hole diameter
-mount_z = 4;        // mm, hole center distance from top edge
-mount_slot_l = 8;   // mm, slot length
+// Side mounting holes
+mount_d = 6.0;          // mm, mounting hole diameter
+mount_z = 4;            // mm, hole center distance from top edge
+mount_count = 2;        // holes per side (minimum 2 for stability)
+mount_margin = 20;      // mm, hole distance from tray ends
 
 $fn = 64;
 
@@ -55,13 +56,10 @@ module hose_barb() {
     }
 }
 
-module keyhole_slot() {
-    // Circular hole for screw head + narrow upward slot for shaft
-    union() {
+module mounting_hole() {
+    // Simple closed circular hole through the wall
+    rotate([90, 0, 0])
         cylinder(h = wall_thick + 2, d = mount_d, center = true);
-        translate([0, mount_slot_l / 2, 0])
-            cube([mount_d * 0.5, mount_slot_l, wall_thick + 2], center = true);
-    }
 }
 
 module drip_tray() {
@@ -101,11 +99,13 @@ module drip_tray() {
         translate([length - drain_offset, width / 2, wall_thick])
             cylinder(h = drain_d * 0.6, d1 = drain_d * 2.5, d2 = drain_d);
 
-        // Side mounting keyhole slots (left and right walls)
+        // Side mounting holes (left and right walls)
         for (y = [wall_thick / 2, width - wall_thick / 2]) {
-            translate([length / 2, y, height - mount_z])
-                rotate([90, 0, 0])
-                    keyhole_slot();
+            for (i = [0 : mount_count - 1]) {
+                x = mount_margin + i * ((length - 2 * mount_margin) / max(mount_count - 1, 1));
+                translate([x, y, height - mount_z])
+                    mounting_hole();
+            }
         }
     }
 }
