@@ -10,38 +10,78 @@ slope = 2.0;        // mm, floor slopes down from back to front
 drain_d = 8.0;      // mm, drain hole diameter
 drain_offset = 12;  // mm, drain hole distance from front edge
 
+// Flow ribs
+rib_count = 5;      // number of ribs
+rib_width = 1.0;    // mm
+rib_height = 0.8;   // mm
+
+// Hose barb
+barb_length = 12;   // mm, barb extension below tray
+barb_od = 10;       // mm, barb outer diameter
+barb_count = 2;     // number of barb ridges
+
 $fn = 64;
 
 // --- Computed ---
 inner_l = length - 2 * wall_thick;
 inner_w = width - 2 * wall_thick;
 inner_r = max(corner_radius - wall_thick, 0);
+slope_angle = atan(slope / length);
 
-// --- Model ---
+// --- Modules ---
+
+module flow_rib(y_pos) {
+    // Rib runs from back to front, following the sloped floor
+    translate([0, y_pos - rib_width / 2, wall_thick + slope])
+    rotate([0, slope_angle, 0])
+        cube([length - drain_offset - 5, rib_width, rib_height]);
+}
+
+module hose_barb() {
+    // Main tube
+    cylinder(h = barb_length, d = barb_od);
+
+    // Barbed ridges (flared outward so tube grips)
+    ridge_h = 1.2;
+    for (i = [1 : barb_count]) {
+        z = i * (barb_length / (barb_count + 1)) - ridge_h / 2;
+        translate([0, 0, z])
+            cylinder(h = ridge_h, d1 = barb_od, d2 = barb_od + 1.5);
+    }
+}
 
 module drip_tray() {
     difference() {
-        // Outer shell
-        linear_extrude(height = height)
-            rounded_rect_2d(length, width, corner_radius);
+        union() {
+            // Outer shell
+            linear_extrude(height = height)
+                rounded_rect_2d(length, width, corner_radius);
+
+            // Flow ribs on sloped floor
+            for (i = [0 : rib_count - 1]) {
+                y = wall_thick + (inner_w / (rib_count - 1)) * i;
+                flow_rib(y);
+            }
+
+            // Hose barb nozzle at bottom
+            translate([length - drain_offset, width / 2, -barb_length])
+                hose_barb();
+        }
 
         // Inner cavity with sloped bottom
         intersection() {
-            // Vertical bounds of inner space
             translate([wall_thick, wall_thick, 0])
                 linear_extrude(height = height + 1)
                     rounded_rect_2d(inner_l, inner_w, inner_r);
 
-            // Space above the sloped plane.
-            // Plane is higher at the back (x≈0) and lower at the front (x≈length).
             translate([-length, -width, wall_thick + slope])
-            rotate([0, atan(slope / length), 0])
+            rotate([0, slope_angle, 0])
                 cube([length * 3, width * 3, height]);
         }
 
-        // Single drain hole at the lowest point (front)
-        translate([length - drain_offset, width / 2, -1])
-            cylinder(h = wall_thick + 2, d = drain_d);
+        // Drain hole through tray floor and barb
+        translate([length - drain_offset, width / 2, -barb_length - 1])
+            cylinder(h = wall_thick + barb_length + 2, d = drain_d);
 
         // Funnel depression to help water collect at the drain
         translate([length - drain_offset, width / 2, wall_thick])
