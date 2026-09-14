@@ -6,7 +6,7 @@ A growing collection of 3D-printable gardening accessories. Each model is parame
 
 Current models:
 
-- **Drip Tray** (`drip_tray`) — Rectangular plant drip tray with rounded corners, a sloped floor, flow-guiding ribs, and a barbed hose nozzle. Tunable length, width, height, wall thickness, slope, drain diameter, and barb size.
+- **Drip Tray** (`drip_tray`) — Rectangular plant drip tray with rounded corners, a sloped floor, flow-guiding ribs, a barbed hose nozzle, and side keyhole mounting slots. Tunable length, width, height, wall thickness, slope, drain diameter, barb size, and mount position.
 
 More tools (labels, brackets, hose guides, etc.) can be added under `designs/`.
 

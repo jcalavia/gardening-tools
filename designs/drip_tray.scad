@@ -20,6 +20,11 @@ barb_length = 12;   // mm, barb extension below tray
 barb_od = 10;       // mm, barb outer diameter
 barb_count = 2;     // number of barb ridges
 
+// Side mounting slots
+mount_d = 6.0;      // mm, mounting hole diameter
+mount_z = 4;        // mm, hole center distance from top edge
+mount_slot_l = 8;   // mm, slot length
+
 $fn = 64;
 
 // --- Computed ---
@@ -47,6 +52,15 @@ module hose_barb() {
         z = i * (barb_length / (barb_count + 1)) - ridge_h / 2;
         translate([0, 0, z])
             cylinder(h = ridge_h, d1 = barb_od, d2 = barb_od + 1.5);
+    }
+}
+
+module keyhole_slot() {
+    // Circular hole for screw head + narrow upward slot for shaft
+    union() {
+        cylinder(h = wall_thick + 2, d = mount_d, center = true);
+        translate([0, mount_slot_l / 2, 0])
+            cube([mount_d * 0.5, mount_slot_l, wall_thick + 2], center = true);
     }
 }
 
@@ -86,6 +100,13 @@ module drip_tray() {
         // Funnel depression to help water collect at the drain
         translate([length - drain_offset, width / 2, wall_thick])
             cylinder(h = drain_d * 0.6, d1 = drain_d * 2.5, d2 = drain_d);
+
+        // Side mounting keyhole slots (left and right walls)
+        for (y = [wall_thick / 2, width - wall_thick / 2]) {
+            translate([length / 2, y, height - mount_z])
+                rotate([90, 0, 0])
+                    keyhole_slot();
+        }
     }
 }
 
