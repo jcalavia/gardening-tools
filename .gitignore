@@ -1,0 +1,11 @@
+# Generated STL files
+*.stl
+
+# Temp / output dirs
+stl/
+dist/
+.tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
